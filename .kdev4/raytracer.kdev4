@@ -1,0 +1,22 @@
+[Buildset]
+BuildItems=@Variant(\x00\x00\x00\t\x00\x00\x00\x00\x01\x00\x00\x00\x0b\x00\x00\x00\x00\x01\x00\x00\x00\x12\x00r\x00a\x00y\x00t\x00r\x00a\x00c\x00e\x00r)
+
+[Launch]
+Launch Configurations=Launch Configuration 0
+
+[Launch][Launch Configuration 0]
+Configured Launch Modes=execute
+Configured Launchers=scriptAppLauncher
+Name=New Script Application Launcher
+Type=Script Application
+
+[Launch][Launch Configuration 0][Data]
+Arguments=
+EnvironmentGroup=
+Executable=file:///home/premell/big_programming_projects/raytracer/build.sh
+Execute on Remote Host=false
+Interpreter=
+Output Filtering Mode=2
+Remote Host=
+Run current file=false
+Working Directory=file:///home/premell/big_programming_projects/raytracer
