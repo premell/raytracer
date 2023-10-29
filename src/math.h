@@ -11,7 +11,6 @@ struct Vec3 {
   float x, y, z;
 };
 
-
 // never used this for the union
 // };
 // float E[3];
@@ -154,7 +153,6 @@ inline float vec_length_squared(Vec3 a) {
   return a.x * a.x + a.y * a.y + a.z * a.z;
 }
 
-
 inline Vec3 normalize(Vec3 a) {
   float length = vec_length(a);
 
@@ -170,6 +168,49 @@ inline Vec3 normalize(Vec3 a) {
   return a;
 }
 
+inline float random_double() {
+  // Returns a random real in [0,1).
+  return rand() / (RAND_MAX + 1.0);
+}
+
+inline float random_double(double min, double max) {
+  // Returns a random real in [min,max).
+  return min + (max - min) * random_double();
+}
+
+inline Vec3 random_vec() {
+  return Vec3{random_double(), random_double(), random_double()};
+}
+
+inline Vec3 random_vec(double min, double max) {
+  return Vec3{random_double(min, max), random_double(min, max),
+              random_double(min, max)};
+}
+
+inline Vec3 random_vec_in_unit_sphere() {
+  while (true) {
+    auto p = random_vec(-1, 1);
+    if (vec_length_squared(p) < 1)
+      return p;
+  }
+}
+
+inline Vec3 random_vec_on_unit_sphere() {
+  return normalize(random_vec_in_unit_sphere());
+}
+
+// requires to be in the same direction as input vector
+inline Vec3 random_vec_on_unit_hemosphere(Vec3 vector) {
+
+  auto random_vec = normalize(random_vec_in_unit_sphere());
+
+  if (dot(random_vec, vector) >= 0) {
+    return random_vec;
+  } else {
+    return -random_vec;
+  }
+}
+
 
 // rays
 struct Ray {
@@ -177,6 +218,9 @@ struct Ray {
   Vec3 direction;
 };
 
-inline Vec3 rayAt(Ray ray, float t) {
-  return ray.origin + t * ray.direction;
+inline Vec3 rayAt(Ray ray, float t) { return ray.origin + t * ray.direction; }
+
+const double pi = 3.1415926535897932385;
+inline double degrees_to_radians(double degrees) {
+  return degrees * pi / 180.0;
 }

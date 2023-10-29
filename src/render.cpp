@@ -4,12 +4,11 @@
 
 void updateScene() {}
 
-double hitSphere(const Point &center, double radius, const Ray &ray) {
-  // TODO what the hell are these????
-  Vec3 oc = ray.origin - center;
+double hitSphere(Sphere sphere, Ray ray) {
+  Vec3 oc = ray.origin - sphere.center;
   auto a = vec_length_squared(ray.direction);
   auto half_b = dot(oc, ray.direction);
-  auto c = vec_length_squared(oc) - radius * radius;
+  auto c = vec_length_squared(oc) - sphere.radius * sphere.radius;
   auto discriminant = half_b * half_b - a * c;
 
   if (discriminant < 0) {
@@ -19,13 +18,26 @@ double hitSphere(const Point &center, double radius, const Ray &ray) {
   }
 }
 
-Color rayColor(const Ray &ray) {
-  auto t = hitSphere(Point{0, 0, -1}, 0.5, ray);
-  if (t > 0.0) {
-    Vec3 normalized_ray = normalize(rayAt(ray, t) - Vec3{0, 0, -1});
-    return 0.5 * Color{normalized_ray.x + 1, normalized_ray.y + 1,
-                       normalized_ray.z + 1};
+Color rayColor(RenderState state, Ray ray, uint currentHitCount = 0) {
+  if (currentHitCount >= RAY_BOUNCES) {
+    return Color{0, 0, 0};
   }
+
+  for (auto sphere : state.spheres) {
+    auto t = hitSphere(sphere, ray);
+    if (t > 0.0) {
+      Vec3 sphere_normal = normalize(rayAt(ray, t) - sphere.center);
+      Vec3 scatter_direction = random_vec_on_unit_hemosphere(sphere_normal);
+
+      return 0.5 * rayColor(state,
+                            Ray{.origin = rayAt(ray, t),
+                                .direction = scatter_direction},
+                            currentHitCount++);
+    }
+  }
+
+  // return 0.5 * Color{normalized_ray.x + 1, normalized_ray.y + 1,
+  //                    normalized_ray.z + 1};
 
   Vec3 unit_direction = normalize(ray.direction);
   auto a = 0.5 * (unit_direction.y + 1.0);
@@ -37,14 +49,20 @@ void renderScene(RenderState state, SDL_Surface *surfaceToDrawOn) {
   for (uint rowIndex = 0; rowIndex < IMAGE_HEIGHT; rowIndex++) {
     uint32 *Pixel = Row;
     for (uint columnIndex = 0; columnIndex < IMAGE_WIDTH; columnIndex++) {
-      auto pixel_center = state.pixel_00_loc +
-                          (columnIndex * state.pixel_delta_w) +
-                          (rowIndex * state.pixel_delta_h);
-      auto ray_direction = pixel_center - state.camera_position;
 
-      Ray ray = Ray{state.camera_position, ray_direction};
+      Color pixel_color{0, 0, 0};
 
-      Color pixel_color = rayColor(ray);
+      for (uint sample = 0; sample < SAMPLES_PER_PIXEL; ++sample) {
+        auto pixel_center = state.pixel_00_loc +
+                            (columnIndex * state.pixel_delta_w) +
+                            (rowIndex * state.pixel_delta_h);
+        auto ray_direction = pixel_center - state.camera_position;
+        Ray ray = Ray{state.camera_position, ray_direction};
+
+        pixel_color += rayColor(state, ray)/SAMPLES_PER_PIXEL;
+      }
+
+      //Color pixel_color = rayColor(state, ray);
       *Pixel++ = ((int)(pixel_color.x * 255) << 16) |
                  ((int)(pixel_color.y * 255) << 8) | (int)(pixel_color.z * 255);
     }

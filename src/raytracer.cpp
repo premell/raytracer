@@ -1,6 +1,8 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_rwops.h>
 #include <SDL2/SDL_scancode.h>
+#include <future>
+#include <initializer_list>
 
 #include "./common.h"
 #include "./math.h"
@@ -49,7 +51,7 @@ void initSDL(void) {
   }
 }
 
-void render(SDL_Surface *surface) {
+void blitToScreen(SDL_Surface *surface) {
   SDL_RenderClear(app.renderer);
   SDL_Texture *texture = SDL_CreateTextureFromSurface(app.renderer, surface);
 
@@ -92,11 +94,11 @@ int main(int argc, char *argv[]) {
   auto pixel_00_loc =
       viewport_upper_left + 0.5 * (pixel_delta_w + pixel_delta_h);
 
-  auto sphere = Sphere{.center = Vec3{0, 0, -1}, .radius = 0.5};
+  auto spheres = {Sphere{.center = Vec3{0, 0, -1}, .radius = 0.5},
+                  Sphere{.center = Vec3{0, -50.5, -1}, .radius = 50}};
 
   RenderState state = {
-      .sphere = sphere,
-
+      .spheres = spheres,
       .camera_position = camera_position,
       .viewport_w = viewport_w,
       .viewport_h = viewport_h,
@@ -141,7 +143,7 @@ int main(int argc, char *argv[]) {
 
     updateAndRender(state, &oldDeviceInput, surface, msSinceLastWorldUpdate);
 
-    render(surface);
+    blitToScreen(surface);
     SDL_FreeSurface(surface);
 
     int timeForCurrentFrame =
@@ -151,6 +153,7 @@ int main(int argc, char *argv[]) {
       SDL_Delay(correspondingMsPerFrame - timeForCurrentFrame);
     }
 
+    std::promise<void>().get_future().wait();
     oldFrameEndTime = Time::now();
   }
 

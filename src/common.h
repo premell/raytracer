@@ -3,6 +3,7 @@
 #include "./math.h"
 #include <SDL2/SDL_scancode.h>
 #include <chrono>
+#include <vector>
 
 using TimePoint = std::chrono::high_resolution_clock::time_point;
 using std::chrono::high_resolution_clock;
@@ -23,6 +24,9 @@ const float VIEWPORT_HEIGHT = 2.0;
 const float VIEWPORT_WIDTH =
     VIEWPORT_HEIGHT * (static_cast<double>(IMAGE_WIDTH) / IMAGE_HEIGHT);
 
+
+const uint RAY_BOUNCES = 50;
+const uint SAMPLES_PER_PIXEL = 10;
 // INPUT
 
 enum player_commands {
@@ -70,23 +74,23 @@ struct DeviceInputEvent {
   DeviceInputType device_type;
 };
 
-
-struct Sphere{
+struct Sphere {
   Vec3 center;
   float radius;
 };
 
 struct RenderState {
-  Sphere sphere;
+  // eeeeeh todo
+  std::vector<Sphere> spheres;
 
   Vec3 camera_position;
   float focal_length;
   Vec3 viewport_w;
   Vec3 viewport_h;
 
-// width
+  // width
   Vec3 pixel_delta_w;
-// height
+  // height
   Vec3 pixel_delta_h;
 
   Vec3 pixel_00_loc;
@@ -96,7 +100,7 @@ struct RenderState {
 typedef Vec3 Color;
 typedef Vec3 Point;
 
-//inline Vec3
+// inline Vec3
 
 // struct color {
 //   float Red;
