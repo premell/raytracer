@@ -24,9 +24,15 @@ const float VIEWPORT_HEIGHT = 2.0;
 const float VIEWPORT_WIDTH =
     VIEWPORT_HEIGHT * (static_cast<double>(IMAGE_WIDTH) / IMAGE_HEIGHT);
 
-
-const uint RAY_BOUNCES = 50;
+const uint RAY_BOUNCES = 10;
 const uint SAMPLES_PER_PIXEL = 10;
+
+const float RAY_T_MIN = 0.0001;
+const uint RAY_T_MAX = 100000;
+
+typedef Vec3 Color;
+typedef Vec3 Point;
+
 // INPUT
 
 enum player_commands {
@@ -74,9 +80,24 @@ struct DeviceInputEvent {
   DeviceInputType device_type;
 };
 
+enum Material {
+  METAL,
+  GLASS,
+  DEFUSE
+};
+
 struct Sphere {
   Vec3 center;
   float radius;
+
+  //float light_damping;
+
+  Color color;
+
+  Material material;
+
+  // radius of the fuzzy sphere, the highter the more fuzz
+  float fuzzy_metal_reflection;
 };
 
 struct RenderState {
@@ -97,8 +118,6 @@ struct RenderState {
 };
 
 // xyz => red green blue
-typedef Vec3 Color;
-typedef Vec3 Point;
 
 // inline Vec3
 

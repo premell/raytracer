@@ -94,8 +94,24 @@ int main(int argc, char *argv[]) {
   auto pixel_00_loc =
       viewport_upper_left + 0.5 * (pixel_delta_w + pixel_delta_h);
 
-  auto spheres = {Sphere{.center = Vec3{0, 0, -1}, .radius = 0.5},
-                  Sphere{.center = Vec3{0, -50.5, -1}, .radius = 50}};
+  auto spheres = {Sphere{.center = Vec3{-1.0, 0, -1.0},
+                         .radius = 0.5,
+                         .color = {0.8, 0.8, 0.8},
+                         .material = METAL,
+                         .fuzzy_metal_reflection = 0.3},
+                  Sphere{.center = Vec3{0, 0, -1.0},
+                         .radius = 0.5,
+                         .color = {0.7, 0.3, 0.3},
+                         .material = DEFUSE},
+                  Sphere{.center = Vec3{1, 0, -1},
+                         .radius = 0.5,
+                         .color = {0.8, 0.6, 0.2},
+                         .material = METAL,
+                         .fuzzy_metal_reflection = 1},
+                  Sphere{.center = Vec3{0, -50.5, -1},
+                         .radius = 50,
+                         .color = {0.8, 0.8, 0.0},
+                         .material = DEFUSE}};
 
   RenderState state = {
       .spheres = spheres,
@@ -153,7 +169,7 @@ int main(int argc, char *argv[]) {
       SDL_Delay(correspondingMsPerFrame - timeForCurrentFrame);
     }
 
-    std::promise<void>().get_future().wait();
+    //std::promise<void>().get_future().wait();
     oldFrameEndTime = Time::now();
   }
 

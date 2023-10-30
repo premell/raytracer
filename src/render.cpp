@@ -14,7 +14,15 @@ double hitSphere(Sphere sphere, Ray ray) {
   if (discriminant < 0) {
     return -1.0;
   } else {
-    return (-half_b - sqrt(discriminant)) / a;
+    auto root = (-half_b - sqrt(discriminant)) / a;
+
+    if (root <= RAY_T_MIN || RAY_T_MAX <= root) {
+      root = (-half_b + sqrt(discriminant)) / a;
+      if (root <= RAY_T_MIN || RAY_T_MAX <= root)
+        return -1;
+    }
+
+    return root;
   }
 }
 
@@ -23,17 +31,54 @@ Color rayColor(RenderState state, Ray ray, uint currentHitCount = 0) {
     return Color{0, 0, 0};
   }
 
+  Sphere currentClosestSphere;
+  float currentClosestT = -1;
+
   for (auto sphere : state.spheres) {
     auto t = hitSphere(sphere, ray);
-    if (t > 0.0) {
-      Vec3 sphere_normal = normalize(rayAt(ray, t) - sphere.center);
-      Vec3 scatter_direction = random_vec_on_unit_hemosphere(sphere_normal);
 
-      return 0.5 * rayColor(state,
-                            Ray{.origin = rayAt(ray, t),
-                                .direction = scatter_direction},
-                            currentHitCount++);
+    if ((t < currentClosestT && t > 0) || currentClosestT < 0) {
+      currentClosestSphere = sphere;
+      currentClosestT = t;
     }
+  }
+
+  // closest hit
+  if (currentClosestT > 0.0) {
+
+    Vec3 scatter_direction;
+    Vec3 sphere_normal =
+        normalize(rayAt(ray, currentClosestT) - currentClosestSphere.center);
+    switch (currentClosestSphere.material) {
+
+    case METAL: {
+      scatter_direction =
+          rayAt(ray, currentClosestT) -
+          2 * dot(sphere_normal, rayAt(ray, currentClosestT)) * sphere_normal +
+          currentClosestSphere.fuzzy_metal_reflection *
+              random_vec_in_unit_sphere();
+      break;
+    }
+    case DEFUSE: {
+      scatter_direction = sphere_normal + random_vec_on_unit_sphere();
+      // if the scatter direction is close to opposite of the normal we can
+      // get near to infinite/NaN
+      if (vec_length(scatter_direction) < 0.001) {
+        scatter_direction = sphere_normal;
+      }
+      break;
+    }
+
+    default: {
+      abort();
+    }
+    }
+
+    return currentClosestSphere.color *
+           rayColor(state,
+                    Ray{.origin = rayAt(ray, currentClosestT),
+                        .direction = normalize(scatter_direction)},
+                    currentHitCount++);
   }
 
   // return 0.5 * Color{normalized_ray.x + 1, normalized_ray.y + 1,
@@ -59,10 +104,10 @@ void renderScene(RenderState state, SDL_Surface *surfaceToDrawOn) {
         auto ray_direction = pixel_center - state.camera_position;
         Ray ray = Ray{state.camera_position, ray_direction};
 
-        pixel_color += rayColor(state, ray)/SAMPLES_PER_PIXEL;
+        pixel_color += rayColor(state, ray) / SAMPLES_PER_PIXEL;
       }
 
-      //Color pixel_color = rayColor(state, ray);
+      // Color pixel_color = rayColor(state, ray);
       *Pixel++ = ((int)(pixel_color.x * 255) << 16) |
                  ((int)(pixel_color.y * 255) << 8) | (int)(pixel_color.z * 255);
     }
