@@ -36,7 +36,6 @@ Color rayColor(RenderState state, Ray ray, uint currentHitCount = 0) {
 
   for (auto sphere : state.spheres) {
     auto t = hitSphere(sphere, ray);
-
     if ((t < currentClosestT && t > 0) || currentClosestT < 0) {
       currentClosestSphere = sphere;
       currentClosestT = t;
@@ -45,7 +44,6 @@ Color rayColor(RenderState state, Ray ray, uint currentHitCount = 0) {
 
   // closest hit
   if (currentClosestT > 0.0) {
-
     Vec3 scatter_direction;
     Vec3 sphere_normal =
         normalize(rayAt(ray, currentClosestT) - currentClosestSphere.center);
@@ -68,25 +66,29 @@ Color rayColor(RenderState state, Ray ray, uint currentHitCount = 0) {
       }
       break;
     }
-
     default: {
       abort();
     }
     }
 
     return currentClosestSphere.color *
-           rayColor(state,
-                    Ray{.origin = rayAt(ray, currentClosestT),
-                        .direction = normalize(scatter_direction)},
-                    currentHitCount++);
+               rayColor(state,
+                        Ray{.origin = rayAt(ray, currentClosestT),
+                            .direction = normalize(scatter_direction)},
+                        currentHitCount++) +
+           currentClosestSphere.emissive_color *
+               currentClosestSphere.emissive_strength;
+  } else {
+    Vec3 unit_direction = normalize(ray.direction);
+    auto a = 0.5 * (unit_direction.y + 1.0);
+    // return (1.0 - a) * Color{1.0, 1.0, 1.0} + a * Color{0.5, 0.7, 1.0};
+    return (1.0 - a) * Color{1.0, 1.0, 1.0} + a * Color{0.5, 0.7, 1.0};
+
+    // return Color{1,0.2,0.2};
   }
 
   // return 0.5 * Color{normalized_ray.x + 1, normalized_ray.y + 1,
   //                    normalized_ray.z + 1};
-
-  Vec3 unit_direction = normalize(ray.direction);
-  auto a = 0.5 * (unit_direction.y + 1.0);
-  return (1.0 - a) * Color{1.0, 1.0, 1.0} + a * Color{0.5, 0.7, 1.0};
 }
 
 void renderScene(RenderState state, SDL_Surface *surfaceToDrawOn) {

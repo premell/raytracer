@@ -25,7 +25,7 @@ const float VIEWPORT_WIDTH =
     VIEWPORT_HEIGHT * (static_cast<double>(IMAGE_WIDTH) / IMAGE_HEIGHT);
 
 const uint RAY_BOUNCES = 10;
-const uint SAMPLES_PER_PIXEL = 10;
+const uint SAMPLES_PER_PIXEL = 25;
 
 const float RAY_T_MIN = 0.0001;
 const uint RAY_T_MAX = 100000;
@@ -95,9 +95,11 @@ struct Sphere {
   Color color;
 
   Material material;
-
   // radius of the fuzzy sphere, the highter the more fuzz
   float fuzzy_metal_reflection;
+
+  Color emissive_color;
+  float emissive_strength;
 };
 
 struct RenderState {
